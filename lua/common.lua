@@ -14,6 +14,10 @@ vim.opt.listchars = {
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
+--TODO: move that
+-- empty setup using defaults
+require("nvim-tree").setup()
+
 vim.g.loaded_matchparen = true
 
 vim.opt.list = true
@@ -37,10 +41,8 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
 -- Clipboard synchronization - makes yank/paste work with system clipboard
-vim.opt.clipboard = "unnamedplus"
+vim.g.clipboard = "clip.exe"
 
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
 vim.opt.fillchars:append { eob = " " }
 vim.g.loaded_matchparen = true
 

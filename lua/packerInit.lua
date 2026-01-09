@@ -32,16 +32,6 @@ return require('packer').startup(function(use)
 
     use {
         'williamboman/mason.nvim',
-        opts = {
-            ensure_installed = {
-                "clangd",
-                "cmake-language-server",
-                "gopls",
-                "lua-language-server",
-                "codelldb",
-                "delve"
-            }
-        }
     }
 
     use { 'VonHeikemen/lsp-zero.nvim',
@@ -81,7 +71,7 @@ return require('packer').startup(function(use)
 
     use {
         'Lufflee-Vaflee/gitgraph.nvim',
-        branch = 'custom',
+        branch = 'main',
         requires = {
             'nvim-lua/plenary.nvim',
             'sindrets/diffview.nvim'

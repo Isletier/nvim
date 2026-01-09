@@ -128,11 +128,10 @@ function ConfigureDAP()
 
     dapui.setup({
         windows = {
-        height = 20,
-        terminal = {
-            hide = { "delve" }
+            terminal = {
+                hide = { "delve" }
+            },
         },
-    },
     })
 
     dap.listeners.after.event_initialized["dapui_config"] = function()
