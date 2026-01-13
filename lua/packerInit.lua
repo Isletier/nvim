@@ -31,15 +31,13 @@ return require('packer').startup(function(use)
     })
 
     use {
-        'williamboman/mason.nvim',
+        'neovim/nvim-lspconfig',
+        branch = 'master'
     }
 
---    use { 'VonHeikemen/lsp-zero.nvim',
+--    use {
 --        branch = 'v3.x',
 --        requires = {
---            {'williamboman/mason.nvim'},
---            {'williamboman/mason-lspconfig.nvim'},
---
 --            {'neovim/nvim-lspconfig'},
 --            {'hrsh7th/nvim-cmp'},
 --            {'hrsh7th/cmp-nvim-lsp'},
