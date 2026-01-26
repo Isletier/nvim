@@ -26,5 +26,3 @@ function ToggleVText()
     })
 end
 
-vim.keymap.set("n", "<leader>qv", ToggleVText, { desc = "Toggle virtual text" })
-

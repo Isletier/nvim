@@ -1,6 +1,6 @@
 This is my neovim setup
-
-Its pathetic, but its mine
+there are many like it
+but this one is mine
 
 TODO list:
 
@@ -11,9 +11,6 @@ formating:
 quickfix:
     add static_analyzer support for quickfix window
 
-gitgraph:
-    try to add auto update for gitgraph
-    add highlight change for branch under cursor
 
 diffview:
     better colors for file manager
