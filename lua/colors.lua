@@ -86,9 +86,9 @@ require('lualine').setup {
 
 vim.api.nvim_set_hl(0, "QfFileName", {fg = '#3794ff'} )
 vim.api.nvim_set_hl(0, "QfLineNr", {fg = '#9cdcfe'} )
+vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#2a2d2e" })
 
 vim.api.nvim_set_hl(0, "DiffTextChanged", { fg =0x1F58AE,  link = "DiffLineChanged" } )
-
 vim.opt.fillchars:append { eob = " ", diff = "╱"}
 vim.api.nvim_set_hl(0, "DiffDelete", { fg = "#5a5a5a", link="DiffLineDelete" })
 

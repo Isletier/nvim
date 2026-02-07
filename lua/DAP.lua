@@ -52,15 +52,15 @@ function ConfigureDAP()
     local dap = require("dap")
     local path_to_codelldb = vim.fn.stdpath("data") .. "/mason/bin/codelldb"
 
-    dap.adapters.codelldb = {
+    dap.adapters.gdb = {
           type = "executable",
-          command = path_to_codelldb,
+          command = "gdb",
     }
 
     dap.configurations.cpp = {
         {
             name = "Launch file",
-            type = "codelldb",
+            type = "gdb",
             request = "launch",
             program = LaunchELFExecutable,
             cwd = vim.fn.getcwd(),

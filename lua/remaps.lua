@@ -18,11 +18,13 @@ vim.keymap.set("x", "p", [=["_dP]=])
 vim.keymap.set("x", "P", [=["_dP]=])
 
 local vtext = false
-
 function ToggleVText()
     vtext = not vtext
     vim.diagnostic.config({
       virtual_text = vtext,
     })
 end
+
+-- Remove virtual text if it start to be anoying
+vim.keymap.set("n", "<leader>qv", ToggleVText, { desc = "Toggle virtual text" })
 

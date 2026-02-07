@@ -41,21 +41,7 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
 -- Enable system clipboard
-vim.opt.clipboard:append("unnamedplus")
-
--- Configure win32yank for WSL
-vim.g.clipboard = {
-  name = "win32yank-wsl",
-  copy = {
-    ["+"] = "win32yank.exe -i --crlf",
-    ["*"] = "win32yank.exe -i --crlf",
-  },
-  paste = {
-    ["+"] = "win32yank.exe -o --lf",
-    ["*"] = "win32yank.exe -o --lf",
-  },
-  cache_enabled = 0,
-}
+vim.opt.clipboard = "unnamedplus"
 
 vim.opt.fillchars:append { eob = " " }
 vim.g.loaded_matchparen = true

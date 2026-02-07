@@ -11,13 +11,6 @@ return require('packer').startup(function(use)
     }
 
     use {
-        'nvim-telescope/telescope.nvim', branch = '0.1.x',
-        requires = {{
-            'nvim-lua/plenary.nvim'
-        }}
-    }
-
-    use {
         "rockyzhang24/arctic.nvim",
         branch = 'v2',
         requires = {
@@ -35,19 +28,10 @@ return require('packer').startup(function(use)
         branch = 'master'
     }
 
---    use { 'VonHeikemen/lsp-zero.nvim',
---        branch = 'v3.x',
---        requires = {
---            {'williamboman/mason.nvim'},
---            {'williamboman/mason-lspconfig.nvim'},
---
---            {'neovim/nvim-lspconfig'},
---            {'hrsh7th/nvim-cmp'},
---            {'hrsh7th/cmp-nvim-lsp'},
---            {'L3MON4D3/LuaSnip'},
---            {'ray-x/lsp_signature.nvim'},
---        }
---    }
+    use {
+        'ray-x/lsp_signature.nvim',
+        branch = 'master'
+    }
 
     use {
         "mfussenegger/nvim-dap",
@@ -55,7 +39,6 @@ return require('packer').startup(function(use)
             "williamboman/mason.nvim",
         }
     }
-
 
     use {
         "igorlfs/nvim-dap-view",

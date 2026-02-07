@@ -16,8 +16,6 @@ require("DAP")
 
 require("gitTools")
 
-require("completion")
-
 require("QF")
 
 require("cmd")
