@@ -27,7 +27,8 @@ vim.keymap.set("n", "gO", vim.lsp.buf.document_symbol)
 -- LSP completion
 vim.opt.completeopt = {
     "menu",
-    "menuone" }
+    "menuone"
+}
 
 local s_tab_completion = function()
     if vim.fn.pumvisible() == 1 then
@@ -47,7 +48,8 @@ end
 
 vim.keymap.set("i", "<S-Tab>", s_tab_completion, { expr = true, noremap = true })
 vim.keymap.set("i", "<Tab>", tab_completion, { expr = true, noremap = true })
-
+vim.keymap.set('x', '<leader>gf', vim.lsp.buf.format, { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>gf', vim.lsp.buf.format, { noremap = true, silent = true })
 
 vim.opt.shortmess:append("c")
 vim.opt.updatetime = 200
