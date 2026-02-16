@@ -4,6 +4,53 @@ local bit = require("bit")
 -- Глобальная переменная, чтобы Garbage Collector не закрыл соединение
 _G.ws_instance = _G.ws_instance or { handle = nil }
 
+
+local threads = {}
+local breakpoints = {}
+
+
+local timer = vim.uv.new_timer()
+local DVAP_namespace = vim.api.nvim_create_namespace("dvap")
+
+
+local function highlight_current_line(file_path, line_number)
+    if vim.fn.bufexists(file_path) == 0 then
+        return
+    end
+
+    local bufnr = vim.fn.bufadd(file_path)
+    vim.fn.bufload(bufnr)
+
+    -- 2. Очищаем старую подсветку перед установкой новой
+    vim.api.nvim_buf_clear_namespace(bufnr, DVAP_namespace, 0, -1)
+
+    -- 3. Добавляем подсветку
+    -- line_number - 1, так как в API строки считаются от 0
+    vim.api.nvim_buf_set_extmark(bufnr, DVAP_namespace, line_number - 1, 0, {
+        line_hl_group = "Search", -- Можно использовать "CursorLine", "Search" или свой кастомный
+        hl_mode = "combine",
+    })
+
+    -- (Опционально) Переместить курсор к этой строке
+    -- vim.api.nvim_win_set_cursor(0, {line_number, 0})
+end
+
+
+local function start_ui_poller()
+    assert(timer ~= nil)
+    timer:start(1000, 30, vim.schedule_wrap(function()
+        for _, thread in ipairs(threads) do
+            highlight_current_line(thread[2], thread[3])
+        end
+    end))
+end
+
+local function stop_ui_poller()
+    if timer ~= nil then
+        timer:stop()
+    end
+end
+
 local function parse_frame(data)
     if #data < 2 then return nil, data end
     local b1 = string.byte(data, 1)
@@ -47,9 +94,6 @@ HOST = ""
 PORT = 9000
 PATH = "/"
 
-local threads = {}
-local breakpoints = {}
-
 local function split_string_full(inputstr, sep)
     sep = sep or "%s" -- Default to a space pattern if none provided
     local t = {}
@@ -59,20 +103,28 @@ local function split_string_full(inputstr, sep)
         t[i] = str
         i = i + 1
     end
+
     return t
 end
 
 local function update_state(frame)
+    threads = {}
+    breakpoints = {}
     local lines = split_string_full(frame)
-    for index, line in ipairs(lines) do
+    for _, line in ipairs(lines) do
         local occurancies = split_string_full(line, ':')
         if occurancies[1] == "thread" then
             table.insert(threads, { occurancies[2], occurancies[3], occurancies[4], occurancies[5] })
-        else if occurancies[1] == "bp" then
-            
+        elseif occurancies[1] == "bp" then
+            --table.insert(breakpoints, { occurancies[2], occurancies[3], occurancies[4], occurancies[5], occurancies[6], occurancies[7], occurancies[8] } )
         else
-        
+        end
     end
+
+--    for _, thread in ipairs(threads) do
+--        highlight_current_line(thread[2], thread[3])
+--    end
+
 
 --    for index, thread in ipairs(threads) do
 --        print(thread[1] .. thread[2] .. thread[3] .. thread[4])
@@ -103,7 +155,7 @@ local function connect(endpoint)
         if err then return print("Connection error: " .. err) end
 
         -- Handshake
-        local key = "dGhlIHNhbXBsZSBub25jZQ==" -- Статичный ключ для простоты
+        local key = "dGhlIHNhbXBsZSBub25jZQ=="
         local req = string.format(
             "GET %s HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n",
             PATH, HOST, key
@@ -125,6 +177,7 @@ local function connect(endpoint)
                 if e then
                     if buffer:find("101 Switching Protocols") then
                         handshaked = true
+                        start_ui_poller()
                         print("WebSocket Connected to " .. HOST .. ":" .. PORT)
                         buffer = buffer:sub(e + 1)
                     else
@@ -142,6 +195,7 @@ local function connect(endpoint)
                         if frame.opcode == 1 then -- Text frame
                             update_state(frame.payload)
                         elseif frame.opcode == 8 then -- Close frame
+                            stop_ui_poller()
                             client:close()
                         end
                     else
@@ -155,7 +209,7 @@ end
 
 local function connectCMD()
     vim.ui.input({
-        prompt = 'Введите адрес WebSocket (HOST:PORT): ',
+        prompt = 'Enter DVAP endpoint (HOST:PORT): ',
         default = "127.0.0.1:8080", -- значение по умолчанию
     }, connect)
 end
