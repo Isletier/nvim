@@ -114,21 +114,6 @@ _G.packer_plugins = {
     path = "/home/alexey/.local/share/nvim/site/pack/packer/start/lush.nvim",
     url = "https://github.com/rktjmp/lush.nvim"
   },
-  ["mason.nvim"] = {
-    loaded = true,
-    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/mason.nvim",
-    url = "https://github.com/williamboman/mason.nvim"
-  },
-  ["nvim-dap"] = {
-    loaded = true,
-    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-dap",
-    url = "https://github.com/mfussenegger/nvim-dap"
-  },
-  ["nvim-dap-view"] = {
-    loaded = true,
-    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-dap-view",
-    url = "https://github.com/igorlfs/nvim-dap-view"
-  },
   ["nvim-lspconfig"] = {
     loaded = true,
     path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-lspconfig",
@@ -158,11 +143,6 @@ _G.packer_plugins = {
     loaded = true,
     path = "/home/alexey/.local/share/nvim/site/pack/packer/start/plenary.nvim",
     url = "https://github.com/nvim-lua/plenary.nvim"
-  },
-  ["telescope.nvim"] = {
-    loaded = true,
-    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/telescope.nvim",
-    url = "https://github.com/nvim-telescope/telescope.nvim"
   }
 }
 

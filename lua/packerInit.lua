@@ -6,12 +6,12 @@ return require('packer').startup(function(use)
         'wbthomason/packer.nvim'
     }
 
---    use {
---        'nvim-tree/nvim-tree.lua',
---        requires = {
---            'nvim-tree/nvim-web-devicons',
---        },
---    }
+    use {
+        'nvim-tree/nvim-tree.lua',
+        requires = {
+            'nvim-tree/nvim-web-devicons',
+        },
+    }
 
     use {
         'skywind3000/asyncrun.vim'
@@ -50,20 +50,6 @@ return require('packer').startup(function(use)
     use {
         'ray-x/lsp_signature.nvim',
         branch = 'master'
-    }
-
-
---  DAP plugins
-    use {
-        "mfussenegger/nvim-dap",
-        requires = {
-            "williamboman/mason.nvim",
-        }
-    }
-
-    use {
-        "igorlfs/nvim-dap-view",
-        opts = {},
     }
 
 --  Git plugins

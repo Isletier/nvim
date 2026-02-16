@@ -1,6 +1,6 @@
 vim.g.mapleader = " "
 
-vim.keymap.set("n", "<leader>t", "<cmd>Ex<CR>")
+vim.keymap.set("n", "<leader>t", "<cmd>NvimTreeToggle<CR>")
 
 vim.keymap.set("n", "<leader>h", "<C-W>h")
 vim.keymap.set("n", "<leader>j", "<C-W>j")

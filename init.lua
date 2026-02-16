@@ -1,7 +1,5 @@
 require("packerInit")
 
-require("mason").setup{}
-
 require("remaps")
 
 require("common")
@@ -12,7 +10,7 @@ require("TreeSitterInit")
 
 require("LSP")
 
-require("DAP")
+require("DVAP")
 
 require("gitTools")
 
