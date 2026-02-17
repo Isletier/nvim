@@ -13,12 +13,14 @@ Timer = vim.uv.new_timer()
 DVAP_namespace = vim.api.nvim_create_namespace("dvap")
 
 Thread_buf_cache = {}
+
 Thread_Watch_num = nil
+Thread_Watch_pos_cache = { "", 0 }
 
 local function highlight_current_line(thread_num, file_path, line_number)
-    if vim.fn.bufexists(file_path) == 0 then
-        return
-    end
+--    if vim.fn.bufexists(file_path) == 0 then
+--        return
+--    end
 
     local bufnr = vim.fn.bufadd(file_path)
     vim.fn.bufload(bufnr)
@@ -36,23 +38,38 @@ local function highlight_current_line(thread_num, file_path, line_number)
 end
 
 local function thread_watch_focus(file_path, line_number)
-    -- 1. Получаем bufnr (создаем, если его нет)
+    print("attempting to focus")
+    if Thread_Watch_pos_cache[1] == file_path and Thread_Watch_pos_cache[2] == line_number then
+        return
+    end
+
     local bufnr = vim.fn.bufadd(file_path)
     vim.fn.bufload(bufnr)
 
-    -- 2. Делаем буфер текущим в активном окне
     vim.api.nvim_set_current_buf(bufnr)
-    local win = vim.api.nvim_get_current_win()
 
-    vim.api.nvim_win_set_cursor(win, {line_number, 0})
+    vim.api.nvim_win_set_cursor(0, {tonumber(line_number), 0})
+    Thread_Watch_pos_cache[1] = file_path
+    Thread_Watch_pos_cache[2] = line_number
 end
 
 local function start_ui_poller()
     assert(Timer ~= nil)
     Timer:start(1000, 30, vim.schedule_wrap(function()
-        for _, thread in ipairs(Threads) do
-            highlight_current_line(thread[1], thread[2], thread[3])
-            thread_watch_focus(thread[2], thread[3])
+        for num, thread in pairs(Threads) do
+            highlight_current_line(num, thread["file_path"], thread["line"])
+        end
+
+        if Thread_Watch_num ~= nil and Threads[Thread_Watch_num] ~= nil then
+            thread_watch_focus(Threads[Thread_Watch_num]["file_path"], Threads[Thread_Watch_num]["line"])
+            return
+        end
+
+        --try tid
+        for _, thread in pairs(Threads) do
+            if thread["tid"] == Thread_Watch_num then
+                thread_watch_focus(thread["file_path"], thread["line"])
+            end
         end
     end))
 end
@@ -126,7 +143,11 @@ local function update_state(frame)
     for _, line in ipairs(lines) do
         local occurancies = split_string_full(line, ':')
         if occurancies[1] == "thread" then
-            table.insert(Threads, { occurancies[2], occurancies[3], occurancies[4], occurancies[5] })
+            Threads[occurancies[2]] = {
+                file_path = occurancies[3],
+                line = occurancies[4],
+                tid = occurancies[5]
+            }
         elseif occurancies[1] == "bp" then
             --table.insert(breakpoints, { occurancies[2], occurancies[3], occurancies[4], occurancies[5], occurancies[6], occurancies[7], occurancies[8] } )
         else
@@ -224,11 +245,13 @@ local function SetWatchThread()
         default = "1", -- значение по умолчанию
     }, function(num)
         Thread_Watch_num = num
+        Thread_Watch_pos_cache = { "", 0 }
     end)
 end
 
 local function ResetWatchThread()
     Thread_Watch_num = nil
+    Thread_Watch_pos_cache = { "", 0 }
 end
 
 vim.keymap.set("n", "<leader>d", connectCMD)
