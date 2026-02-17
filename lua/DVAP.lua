@@ -13,15 +13,16 @@ Timer = vim.uv.new_timer()
 DVAP_namespace = vim.api.nvim_create_namespace("dvap")
 
 Thread_buf_cache = {}
-
 Thread_Watch_num = nil
 Thread_Watch_pos_cache = { "", 0 }
 
-local function highlight_current_line(thread_num, file_path, line_number)
---    if vim.fn.bufexists(file_path) == 0 then
---        return
---    end
+CursorLineCache = nil
+CursorLineHLCache = nil
+vim.api.nvim_get_hl(0, { name = 'CursorLine' })
+DVAP_CursorLine_hl = { bg = '#030050' }
 
+
+local function highlight_current_line(thread_num, file_path, line_number)
     local bufnr = vim.fn.bufadd(file_path)
     vim.fn.bufload(bufnr)
 
@@ -55,6 +56,13 @@ end
 
 local function start_ui_render()
     assert(Timer ~= nil)
+
+    vim.schedule_wrap(function()
+        CursorLineCache = vim.opt.cursorline
+        CursorLineHLCache = vim.api.nvim_get_hl(0, { name = 'CursorLine' })
+        vim.api.nvim_set_hl(0, 'CursorLine', DVAP_CursorLine_hl)
+    end)
+
     Timer:start(1000, 30, vim.schedule_wrap(function()
         for num, thread in pairs(Threads) do
             highlight_current_line(num, thread["file_path"], thread["line"])
@@ -81,7 +89,13 @@ local function reset_ui()
         vim.api.nvim_buf_clear_namespace(bufnr, DVAP_namespace, 0, -1)
     end
 
-    return
+    Thread_Watch_num = nil
+    Thread_Watch_pos_cache = { "", 0 }
+    Thread_buf_cache = {}
+
+    assert(CursorLineCache ~= nil and CursorLineHLCache ~= nil)
+    vim.opt.cursorline = CursorLineCache
+    vim.api.nvim_set_hl(0, 'CursorLine', CursorLineHLCache)
 end
 
 local function stop_ui_render()
@@ -254,11 +268,6 @@ local function disconnect()
 
     local client = _G.ws_instance.handle
 
-    -- 1. Остановка ваших внутренних процессов (таймеры, UI)
-    if stop_ui_render then
-        stop_ui_render()
-    end
-
     local close_frame = string.char(0x88, 0x00)
     client:write(close_frame, function(err)
         if not client:is_closing() then
@@ -269,6 +278,8 @@ local function disconnect()
         _G.ws_instance.handle = nil
         print("WebSocket connection closed gracefully")
     end)
+
+    stop_ui_render()
 end
 
 local function connectCMD()
