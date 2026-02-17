@@ -5,15 +5,17 @@ local bit = require("bit")
 _G.ws_instance = _G.ws_instance or { handle = nil }
 
 
-local threads = {}
-local breakpoints = {}
+Threads = {}
+Breakpoints = {}
 
 
-local timer = vim.uv.new_timer()
-local DVAP_namespace = vim.api.nvim_create_namespace("dvap")
+Timer = vim.uv.new_timer()
+DVAP_namespace = vim.api.nvim_create_namespace("dvap")
 
+Thread_buf_cache = {}
+Thread_Watch_num = nil
 
-local function highlight_current_line(file_path, line_number)
+local function highlight_current_line(thread_num, file_path, line_number)
     if vim.fn.bufexists(file_path) == 0 then
         return
     end
@@ -21,33 +23,43 @@ local function highlight_current_line(file_path, line_number)
     local bufnr = vim.fn.bufadd(file_path)
     vim.fn.bufload(bufnr)
 
-    -- 2. Очищаем старую подсветку перед установкой новой
-    vim.api.nvim_buf_clear_namespace(bufnr, DVAP_namespace, 0, -1)
+    if Thread_buf_cache[thread_num] ~= nil then
+        vim.api.nvim_buf_clear_namespace(Thread_buf_cache[thread_num], DVAP_namespace, 0, -1)
+    end
 
-    -- 3. Добавляем подсветку
-    -- line_number - 1, так как в API строки считаются от 0
     vim.api.nvim_buf_set_extmark(bufnr, DVAP_namespace, line_number - 1, 0, {
         line_hl_group = "Search", -- Можно использовать "CursorLine", "Search" или свой кастомный
         hl_mode = "combine",
     })
 
-    -- (Опционально) Переместить курсор к этой строке
-    -- vim.api.nvim_win_set_cursor(0, {line_number, 0})
+    Thread_buf_cache[thread_num] = bufnr
 end
 
+local function thread_watch_focus(file_path, line_number)
+    -- 1. Получаем bufnr (создаем, если его нет)
+    local bufnr = vim.fn.bufadd(file_path)
+    vim.fn.bufload(bufnr)
+
+    -- 2. Делаем буфер текущим в активном окне
+    vim.api.nvim_set_current_buf(bufnr)
+    local win = vim.api.nvim_get_current_win()
+
+    vim.api.nvim_win_set_cursor(win, {line_number, 0})
+end
 
 local function start_ui_poller()
-    assert(timer ~= nil)
-    timer:start(1000, 30, vim.schedule_wrap(function()
-        for _, thread in ipairs(threads) do
-            highlight_current_line(thread[2], thread[3])
+    assert(Timer ~= nil)
+    Timer:start(1000, 30, vim.schedule_wrap(function()
+        for _, thread in ipairs(Threads) do
+            highlight_current_line(thread[1], thread[2], thread[3])
+            thread_watch_focus(thread[2], thread[3])
         end
     end))
 end
 
 local function stop_ui_poller()
-    if timer ~= nil then
-        timer:stop()
+    if Timer ~= nil then
+        Timer:stop()
     end
 end
 
@@ -108,27 +120,19 @@ local function split_string_full(inputstr, sep)
 end
 
 local function update_state(frame)
-    threads = {}
-    breakpoints = {}
+    Threads = {}
+    Breakpoints = {}
     local lines = split_string_full(frame)
     for _, line in ipairs(lines) do
         local occurancies = split_string_full(line, ':')
         if occurancies[1] == "thread" then
-            table.insert(threads, { occurancies[2], occurancies[3], occurancies[4], occurancies[5] })
+            table.insert(Threads, { occurancies[2], occurancies[3], occurancies[4], occurancies[5] })
         elseif occurancies[1] == "bp" then
             --table.insert(breakpoints, { occurancies[2], occurancies[3], occurancies[4], occurancies[5], occurancies[6], occurancies[7], occurancies[8] } )
         else
         end
     end
 
---    for _, thread in ipairs(threads) do
---        highlight_current_line(thread[2], thread[3])
---    end
-
-
---    for index, thread in ipairs(threads) do
---        print(thread[1] .. thread[2] .. thread[3] .. thread[4])
---    end
 end
 
 local function connect(endpoint)
@@ -214,5 +218,20 @@ local function connectCMD()
     }, connect)
 end
 
+local function SetWatchThread()
+    vim.ui.input({
+        prompt = 'Enter Focus Thread num|tid: ',
+        default = "1", -- значение по умолчанию
+    }, function(num)
+        Thread_Watch_num = num
+    end)
+end
+
+local function ResetWatchThread()
+    Thread_Watch_num = nil
+end
+
 vim.keymap.set("n", "<leader>d", connectCMD)
+vim.keymap.set("n", "<leader>dw", SetWatchThread)
+vim.keymap.set("n", "<leader>dr", ResetWatchThread)
 
