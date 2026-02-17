@@ -53,7 +53,7 @@ local function thread_watch_focus(file_path, line_number)
     Thread_Watch_pos_cache[2] = line_number
 end
 
-local function start_ui_poller()
+local function start_ui_render()
     assert(Timer ~= nil)
     Timer:start(1000, 30, vim.schedule_wrap(function()
         for num, thread in pairs(Threads) do
@@ -74,10 +74,22 @@ local function start_ui_poller()
     end))
 end
 
-local function stop_ui_poller()
+local function reset_ui()
+    local all_buffers = vim.api.nvim_list_bufs()
+
+    for _, bufnr in ipairs(all_buffers) do
+        vim.api.nvim_buf_clear_namespace(bufnr, DVAP_namespace, 0, -1)
+    end
+
+    return
+end
+
+local function stop_ui_render()
     if Timer ~= nil then
         Timer:stop()
     end
+
+    reset_ui()
 end
 
 local function parse_frame(data)
@@ -156,6 +168,8 @@ local function update_state(frame)
 
 end
 
+
+
 local function connect(endpoint)
     if _G.ws_instance.handle then
         _G.ws_instance.handle:close()
@@ -202,7 +216,7 @@ local function connect(endpoint)
                 if e then
                     if buffer:find("101 Switching Protocols") then
                         handshaked = true
-                        start_ui_poller()
+                        start_ui_render()
                         print("WebSocket Connected to " .. HOST .. ":" .. PORT)
                         buffer = buffer:sub(e + 1)
                     else
@@ -220,7 +234,7 @@ local function connect(endpoint)
                         if frame.opcode == 1 then -- Text frame
                             update_state(frame.payload)
                         elseif frame.opcode == 8 then -- Close frame
-                            stop_ui_poller()
+                            stop_ui_render()
                             client:close()
                         end
                     else
@@ -229,6 +243,31 @@ local function connect(endpoint)
                 end
             end
         end)
+    end)
+end
+
+local function disconnect()
+    if not _G.ws_instance or not _G.ws_instance.handle then
+        print("No active connection to close")
+        return
+    end
+
+    local client = _G.ws_instance.handle
+
+    -- 1. Остановка ваших внутренних процессов (таймеры, UI)
+    if stop_ui_render then
+        stop_ui_render()
+    end
+
+    local close_frame = string.char(0x88, 0x00)
+    client:write(close_frame, function(err)
+        if not client:is_closing() then
+            client:read_stop()
+            client:close()
+        end
+
+        _G.ws_instance.handle = nil
+        print("WebSocket connection closed gracefully")
     end)
 end
 
@@ -254,7 +293,8 @@ local function ResetWatchThread()
     Thread_Watch_pos_cache = { "", 0 }
 end
 
-vim.keymap.set("n", "<leader>d", connectCMD)
+vim.keymap.set("n", "<leader>dc", connectCMD)
+vim.keymap.set("n", "<leader>dd", disconnect)
 vim.keymap.set("n", "<leader>dw", SetWatchThread)
 vim.keymap.set("n", "<leader>dr", ResetWatchThread)
 
