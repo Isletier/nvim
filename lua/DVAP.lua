@@ -1,13 +1,15 @@
-local uv = vim.uv or vim.loop
+local uv = vim.uv
 local bit = require("bit")
 
--- Глобальная переменная, чтобы Garbage Collector не закрыл соединение
+
 _G.ws_instance = _G.ws_instance or { handle = nil }
 
 
 Threads = {}
 Breakpoints = {}
-
+State_updated_flag = false
+Previous_Frame_Cache = ""
+First_run = false
 
 Timer = vim.uv.new_timer()
 DVAP_namespace = vim.api.nvim_create_namespace("dvap")
@@ -18,8 +20,45 @@ Thread_Watch_pos_cache = { "", 0 }
 
 CursorLineCache = nil
 CursorLineHLCache = nil
-vim.api.nvim_get_hl(0, { name = 'CursorLine' })
-DVAP_CursorLine_hl = { bg = '#030050' }
+vim.api.nvim_get_hl(0, { name = 'CursorLine' } )
+DVAP_CursorLine_hl = { bg = '#19435b' }
+
+-- Define the sign
+vim.fn.sign_define("DVAP_breakpoint_unconditional", { text = "", texthl = "Search" })
+vim.fn.sign_define("DVAP_breakpoint_conditional", { text = "", texthl = "Search" })
+
+function Update_breakpoint_qf(qf_id, breakpoints_data)
+    -- 1. Подготовка данных в формате quickfix
+    local qf_items = {}
+    for _, item in pairs(breakpoints_data) do
+        table.insert(qf_items, {
+            filename = item.file_path,
+            lnum = item.line,
+            text = string.format("[%s] Enabled: %s, Cond: %s", 
+                                 item.type_str, item.enabled, item.nonconditional),
+            type = item.type_str:sub(1,1):upper() -- Опционально: первая буква типа (E, W, etc.)
+        })
+    end
+
+    -- 2. Поиск окна quickfix для сохранения позиции
+    local qf_winid = vim.fn.getqflist({ winid = 0, id = qf_id }).winid
+    local cur_line = 1
+
+    if qf_winid ~= 0 then
+        cur_line = vim.api.nvim_win_get_cursor(qf_winid)[1]
+    end
+
+    -- 3. Обновление списка по ID
+    vim.fn.setqflist({}, 'u', { id = qf_id, items = qf_items })
+
+    -- 4. Восстановление позиции курсора
+    if qf_winid ~= 0 and vim.api.nvim_win_is_valid(qf_winid) then
+        local new_count = #qf_items
+        -- Если элементов стало меньше, корректируем позицию, чтобы не выйти за границы
+        local target_line = math.min(cur_line, new_count + 1)
+        vim.api.nvim_win_set_cursor(qf_winid, { target_line, 0 })
+    end
+end
 
 
 local function highlight_current_line(thread_num, file_path, line_number)
@@ -31,7 +70,7 @@ local function highlight_current_line(thread_num, file_path, line_number)
     end
 
     vim.api.nvim_buf_set_extmark(bufnr, DVAP_namespace, line_number - 1, 0, {
-        line_hl_group = "Search", -- Можно использовать "CursorLine", "Search" или свой кастомный
+        line_hl_group = "Search",
         hl_mode = "combine",
     })
 
@@ -39,7 +78,6 @@ local function highlight_current_line(thread_num, file_path, line_number)
 end
 
 local function thread_watch_focus(file_path, line_number)
-    print("attempting to focus")
     if Thread_Watch_pos_cache[1] == file_path and Thread_Watch_pos_cache[2] == line_number then
         return
     end
@@ -54,6 +92,21 @@ local function thread_watch_focus(file_path, line_number)
     Thread_Watch_pos_cache[2] = line_number
 end
 
+local function try_focus()
+    if Thread_Watch_num ~= nil and Threads[Thread_Watch_num] ~= nil then
+        thread_watch_focus(Threads[Thread_Watch_num]["file_path"], Threads[Thread_Watch_num]["line"])
+        return
+    end
+
+    --try tid
+    for _, thread in pairs(Threads) do
+        if thread["tid"] == Thread_Watch_num then
+            thread_watch_focus(thread["file_path"], thread["line"])
+        end
+    end
+
+end
+
 local function start_ui_render()
     assert(Timer ~= nil)
 
@@ -61,24 +114,42 @@ local function start_ui_render()
         CursorLineCache = vim.opt.cursorline
         CursorLineHLCache = vim.api.nvim_get_hl(0, { name = 'CursorLine' })
         vim.api.nvim_set_hl(0, 'CursorLine', DVAP_CursorLine_hl)
-    end)
+    end)()
 
     Timer:start(1000, 30, vim.schedule_wrap(function()
         for num, thread in pairs(Threads) do
             highlight_current_line(num, thread["file_path"], thread["line"])
         end
 
-        if Thread_Watch_num ~= nil and Threads[Thread_Watch_num] ~= nil then
-            thread_watch_focus(Threads[Thread_Watch_num]["file_path"], Threads[Thread_Watch_num]["line"])
-            return
-        end
+        vim.fn.setqflist({}, ' ')
+        local my_qf_id = vim.fn.getqflist({ id = 0 }).id
 
-        --try tid
-        for _, thread in pairs(Threads) do
-            if thread["tid"] == Thread_Watch_num then
-                thread_watch_focus(thread["file_path"], thread["line"])
+        vim.fn.sign_unplace("DVAP_sign_group")
+        for num, breakpoint in pairs(Breakpoints) do
+            local b_sign = nil
+
+            if breakpoint.nonconditional and breakpoint.enabled then
+                b_sign = "DVAP_breakpoint_unconditional"
+            else
+                b_sign = "DVAP_breakpoint_conditional"
+            end
+
+            local bufnr = vim.fn.bufnr(breakpoint.file_path)
+            if bufnr ~= -1 then
+                vim.fn.bufload(bufnr)
+                vim.fn.sign_place(
+                    0,
+                    "DVAP_sign_group",
+                    b_sign,
+                    bufnr,
+                    { lnum = breakpoint.line }
+                )
             end
         end
+
+        try_focus()
+
+        Update_breakpoint_qf(my_qf_id, Breakpoints)
     end))
 end
 
@@ -96,6 +167,8 @@ local function reset_ui()
     assert(CursorLineCache ~= nil and CursorLineHLCache ~= nil)
     vim.opt.cursorline = CursorLineCache
     vim.api.nvim_set_hl(0, 'CursorLine', CursorLineHLCache)
+
+    vim.fn.sign_unplace("DVAP_sign_group")
 end
 
 local function stop_ui_render()
@@ -165,6 +238,11 @@ end
 local function update_state(frame)
     Threads = {}
     Breakpoints = {}
+    State_updated_flag = (Previous_Frame_Cache ~= frame)
+    if State_updated_flag then
+        print("state updated")
+    end
+
     local lines = split_string_full(frame)
     for _, line in ipairs(lines) do
         local occurancies = split_string_full(line, ':')
@@ -175,11 +253,18 @@ local function update_state(frame)
                 tid = occurancies[5]
             }
         elseif occurancies[1] == "bp" then
-            --table.insert(breakpoints, { occurancies[2], occurancies[3], occurancies[4], occurancies[5], occurancies[6], occurancies[7], occurancies[8] } )
+            Breakpoints[occurancies[2]] = {
+                file_path = occurancies[3],
+                line = occurancies[4],
+                type_str = occurancies[5],
+                nonconditional = occurancies[6],
+                enabled = occurancies[7]
+            }
         else
         end
     end
 
+    Previous_Frame_Cache = frame
 end
 
 
@@ -219,6 +304,7 @@ local function connect(endpoint)
             if err or not chunk then
                 print("Connection closed")
                 client:close()
+                stop_ui_render()
                 _G.ws_instance.handle = nil
                 return
             end
@@ -299,6 +385,11 @@ local function SetWatchThread()
     end)
 end
 
+
+local function FocusOnWatchThread()
+    try_focus()
+end
+
 local function ResetWatchThread()
     Thread_Watch_num = nil
     Thread_Watch_pos_cache = { "", 0 }
@@ -307,5 +398,6 @@ end
 vim.keymap.set("n", "<leader>dc", connectCMD)
 vim.keymap.set("n", "<leader>dd", disconnect)
 vim.keymap.set("n", "<leader>dw", SetWatchThread)
+vim.keymap.set("n", "<leader>df", FocusOnWatchThread)
 vim.keymap.set("n", "<leader>dr", ResetWatchThread)
 
