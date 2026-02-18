@@ -27,38 +27,6 @@ DVAP_CursorLine_hl = { bg = '#19435b' }
 vim.fn.sign_define("DVAP_breakpoint_unconditional", { text = "", texthl = "Search" })
 vim.fn.sign_define("DVAP_breakpoint_conditional", { text = "", texthl = "Search" })
 
-function Update_breakpoint_qf(qf_id, breakpoints_data)
-    -- 1. Подготовка данных в формате quickfix
-    local qf_items = {}
-    for _, item in pairs(breakpoints_data) do
-        table.insert(qf_items, {
-            filename = item.file_path,
-            lnum = item.line,
-            text = string.format("[%s] Enabled: %s, Cond: %s", 
-                                 item.type_str, item.enabled, item.nonconditional),
-            type = item.type_str:sub(1,1):upper() -- Опционально: первая буква типа (E, W, etc.)
-        })
-    end
-
-    -- 2. Поиск окна quickfix для сохранения позиции
-    local qf_winid = vim.fn.getqflist({ winid = 0, id = qf_id }).winid
-    local cur_line = 1
-
-    if qf_winid ~= 0 then
-        cur_line = vim.api.nvim_win_get_cursor(qf_winid)[1]
-    end
-
-    -- 3. Обновление списка по ID
-    vim.fn.setqflist({}, 'u', { id = qf_id, items = qf_items })
-
-    -- 4. Восстановление позиции курсора
-    if qf_winid ~= 0 and vim.api.nvim_win_is_valid(qf_winid) then
-        local new_count = #qf_items
-        -- Если элементов стало меньше, корректируем позицию, чтобы не выйти за границы
-        local target_line = math.min(cur_line, new_count + 1)
-        vim.api.nvim_win_set_cursor(qf_winid, { target_line, 0 })
-    end
-end
 
 
 local function highlight_current_line(thread_num, file_path, line_number)
@@ -121,11 +89,8 @@ local function start_ui_render()
             highlight_current_line(num, thread["file_path"], thread["line"])
         end
 
-        vim.fn.setqflist({}, ' ')
-        local my_qf_id = vim.fn.getqflist({ id = 0 }).id
-
         vim.fn.sign_unplace("DVAP_sign_group")
-        for num, breakpoint in pairs(Breakpoints) do
+        for _, breakpoint in pairs(Breakpoints) do
             local b_sign = nil
 
             if breakpoint.nonconditional and breakpoint.enabled then
@@ -148,8 +113,6 @@ local function start_ui_render()
         end
 
         try_focus()
-
-        Update_breakpoint_qf(my_qf_id, Breakpoints)
     end))
 end
 
@@ -394,6 +357,33 @@ local function ResetWatchThread()
     Thread_Watch_num = nil
     Thread_Watch_pos_cache = { "", 0 }
 end
+
+QF_breakpoint_id_cache = nil
+
+function Update_breakpoint_qf()
+    -- 1. Подготовка данных в формате quickfix
+    local qf_items = {}
+    for _, item in pairs(Breakpoints) do
+        table.insert(qf_items, {
+            filename = item.file_path,
+            lnum = item.line,
+            text = string.format("[%s] Enabled: %s, Cond: %s",
+                                 item.type_str, item.enabled, item.nonconditional),
+            type = item.type_str:sub(1,1):upper() -- Опционально: первая буква типа (E, W, etc.)
+        })
+    end
+
+    -- 2. Поиск окна quickfix для сохранения позиции
+    local qf_id = vim.fn.getqflist({id = 0}).id
+    if QF_breakpoint_id_cache ~= nil and QF_breakpoint_id_cache == qf_id then
+        vim.fn.setqflist({}, 'u', { id = qf_id, items = qf_items })
+        return
+    end
+
+    vim.fn.setqflist({}, ' ')
+    QF_breakpoint_id_cache = vim.fn.getqflist({id = 0}).id
+end
+
 
 vim.keymap.set("n", "<leader>dc", connectCMD)
 vim.keymap.set("n", "<leader>dd", disconnect)
