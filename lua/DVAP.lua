@@ -1,9 +1,7 @@
 local uv = vim.uv
 local bit = require("bit")
 
-
 _G.ws_instance = _G.ws_instance or { handle = nil }
-
 
 Threads = {}
 Breakpoints = {}
@@ -28,14 +26,9 @@ vim.fn.sign_define("DVAP_breakpoint_unconditional", { text = "", texthl = "Se
 vim.fn.sign_define("DVAP_breakpoint_conditional", { text = "", texthl = "Search" })
 
 
-
 local function highlight_current_line(thread_num, file_path, line_number)
     local bufnr = vim.fn.bufadd(file_path)
     vim.fn.bufload(bufnr)
-
-    if Thread_buf_cache[thread_num] ~= nil then
-        vim.api.nvim_buf_clear_namespace(Thread_buf_cache[thread_num], DVAP_namespace, 0, -1)
-    end
 
     vim.api.nvim_buf_set_extmark(bufnr, DVAP_namespace, line_number - 1, 0, {
         line_hl_group = "Search",
@@ -44,6 +37,13 @@ local function highlight_current_line(thread_num, file_path, line_number)
 
     Thread_buf_cache[thread_num] = bufnr
 end
+
+local function clear_previous_highlight(bufnr)
+    if bufnr ~= nil then
+        vim.api.nvim_buf_clear_namespace(bufnr, DVAP_namespace, 0, -1)
+    end
+end
+
 
 local function thread_watch_focus(file_path, line_number)
     if Thread_Watch_pos_cache[1] == file_path and Thread_Watch_pos_cache[2] == line_number then
@@ -85,6 +85,10 @@ local function start_ui_render()
     end)()
 
     Timer:start(1000, 30, vim.schedule_wrap(function()
+        for _, num in pairs(Thread_buf_cache) do
+            clear_previous_highlight(num)
+        end
+
         for num, thread in pairs(Threads) do
             highlight_current_line(num, thread["file_path"], thread["line"])
         end
@@ -139,7 +143,7 @@ local function stop_ui_render()
         Timer:stop()
     end
 
-    reset_ui()
+    vim.schedule_wrap(reset_ui)()
 end
 
 local function parse_frame(data)
@@ -230,9 +234,34 @@ local function update_state(frame)
     Previous_Frame_Cache = frame
 end
 
+local function disconnect()
+    if not _G.ws_instance or not _G.ws_instance.handle then
+        return
+    end
 
+    local client = _G.ws_instance.handle
+
+    local close_frame = string.char(0x88, 0x00)
+    client:write(close_frame, function(err)
+        if not client:is_closing() then
+            client:read_stop()
+            client:close()
+        end
+
+        _G.ws_instance.handle = nil
+        print("WebSocket connection closed gracefully")
+    end)
+
+    stop_ui_render()
+end
 
 local function connect(endpoint)
+    disconnect()
+    HOST, PORT = parse_endpoint(endpoint)
+    if not HOST and PORT then
+        return
+    end
+
     if _G.ws_instance.handle then
         _G.ws_instance.handle:close()
     end
@@ -240,11 +269,6 @@ local function connect(endpoint)
     local client = uv.new_tcp()
     if client == nil then
         print("Conenction failed")
-        return
-    end
-
-    HOST, PORT = parse_endpoint(endpoint)
-    if not HOST and PORT then
         return
     end
 
@@ -309,28 +333,6 @@ local function connect(endpoint)
     end)
 end
 
-local function disconnect()
-    if not _G.ws_instance or not _G.ws_instance.handle then
-        print("No active connection to close")
-        return
-    end
-
-    local client = _G.ws_instance.handle
-
-    local close_frame = string.char(0x88, 0x00)
-    client:write(close_frame, function(err)
-        if not client:is_closing() then
-            client:read_stop()
-            client:close()
-        end
-
-        _G.ws_instance.handle = nil
-        print("WebSocket connection closed gracefully")
-    end)
-
-    stop_ui_render()
-end
-
 local function connectCMD()
     vim.ui.input({
         prompt = 'Enter DVAP endpoint (HOST:PORT): ',
@@ -384,10 +386,35 @@ function Update_breakpoint_qf()
     QF_breakpoint_id_cache = vim.fn.getqflist({id = 0}).id
 end
 
+function Update_thread_qf()
+    -- 1. Подготовка данных в формате quickfix
+    local qf_items = {}
+    for _, item in pairs(Threads) do
+        table.insert(qf_items, {
+            filename = item.file_path,
+            lnum = item.line,
+            text = string.format("Tid: %s", item.tid),
+        })
+    end
+
+    -- 2. Поиск окна quickfix для сохранения позиции
+    local qf_id = vim.fn.getqflist({id = 0}).id
+    if QF_breakpoint_id_cache ~= nil and QF_breakpoint_id_cache == qf_id then
+        vim.fn.setqflist({}, 'u', { id = qf_id, items = qf_items })
+        return
+    end
+
+    vim.fn.setqflist({}, ' ')
+    QF_breakpoint_id_cache = vim.fn.getqflist({id = 0}).id
+end
+
 
 vim.keymap.set("n", "<leader>dc", connectCMD)
 vim.keymap.set("n", "<leader>dd", disconnect)
 vim.keymap.set("n", "<leader>dw", SetWatchThread)
 vim.keymap.set("n", "<leader>df", FocusOnWatchThread)
 vim.keymap.set("n", "<leader>dr", ResetWatchThread)
+
+vim.keymap.set("n", "<leader>dqb", Update_breakpoint_qf)
+vim.keymap.set("n", "<leader>dqt", Update_thread_qf)
 
