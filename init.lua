@@ -1,7 +1,3 @@
-vim.opt.rtp:append("/home/alexey/.config/nvim-DVAP")
-vim.opt.rtp:append("/home/alexey/.config/nvim-DVAP-ui")
-
-
 require("packerInit")
 
 require("remaps")
@@ -22,6 +18,5 @@ require("QF")
 
 require("cmd")
 
-
-require("nvim-dvap-ui").setup()
+require("DVAP")
 

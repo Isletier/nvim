@@ -65,4 +65,12 @@ return require('packer').startup(function(use)
     use {
         'lewis6991/gitsigns.nvim'
     }
+
+-- DVAP
+    use {
+    'Isletier/nvim-DVAP-ui',
+        requires = {
+           'Isletier/nvim-DVAP'
+        },
+    }
 end)

@@ -114,6 +114,16 @@ _G.packer_plugins = {
     path = "/home/alexey/.local/share/nvim/site/pack/packer/start/lush.nvim",
     url = "https://github.com/rktjmp/lush.nvim"
   },
+  ["nvim-DVAP"] = {
+    loaded = true,
+    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-DVAP",
+    url = "https://github.com/Isletier/nvim-DVAP"
+  },
+  ["nvim-DVAP-ui"] = {
+    loaded = true,
+    path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-DVAP-ui",
+    url = "https://github.com/Isletier/nvim-DVAP-ui"
+  },
   ["nvim-lspconfig"] = {
     loaded = true,
     path = "/home/alexey/.local/share/nvim/site/pack/packer/start/nvim-lspconfig",
