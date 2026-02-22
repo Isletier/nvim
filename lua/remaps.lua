@@ -1,6 +1,6 @@
 vim.g.mapleader = " "
 
-vim.keymap.set("n", "<leader>t", vim.cmd.NvimTreeToggle)
+vim.keymap.set("n", "<leader>t", "<cmd>NvimTreeToggle<CR>")
 
 vim.keymap.set("n", "<leader>h", "<C-W>h")
 vim.keymap.set("n", "<leader>j", "<C-W>j")
@@ -18,13 +18,16 @@ vim.keymap.set("x", "p", [=["_dP]=])
 vim.keymap.set("x", "P", [=["_dP]=])
 
 local vtext = false
-
 function ToggleVText()
     vtext = not vtext
     vim.diagnostic.config({
-      virtual_text = vtext,
+        virtual_text = vtext,
     })
 end
 
+-- Remove virtual text if it start to be anoying
 vim.keymap.set("n", "<leader>qv", ToggleVText, { desc = "Toggle virtual text" })
+
+vim.keymap.set('x', 'J', ":move '>+1<CR>gv-gv", { noremap = true, silent = true })
+vim.keymap.set('x', 'K', ":move '<-2<CR>gv-gv", { noremap = true, silent = true })
 

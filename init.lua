@@ -10,15 +10,13 @@ require("TreeSitterInit")
 
 require("LSP")
 
-require("DAP")
-
-require("finders")
+require("DVAP")
 
 require("gitTools")
-
-require("completion")
 
 require("QF")
 
 require("cmd")
+
+require("DVAP")
 

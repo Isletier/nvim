@@ -9,7 +9,6 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
     callback = function()
         -- Get the command that was just executed
         local last_cmd = vim.fn.getcmdline()
-        print(last_cmd)
         if cmd ~= nil then
             cachedCmds[cmd] = last_cmd
         end
@@ -17,7 +16,6 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
     end
 })
 
-local defaultCmdPrefix = "<leader>sc"
 local defaultAsyncCmdPrefix = "<leader>c"
 
 --my little lovely callack hell
@@ -32,13 +30,16 @@ local function cacheFunc(name)
     return false
 end
 
-
-local function createCmd(name, compiler, default_args, key, cursorBackPosition)
+local function createCmd(name, compiler, default_args, key, cursorBackPosition, errFmt)
     cachedCmds[name] = nil
 
     local acmdFunc = function()
         if not cacheFunc(name .. "a") then
-            vim.api.nvim_feedkeys(":AsyncRun " .. compiler .. " " .. default_args, "n", true)
+            if errFmt ~= nil then
+                vim.api.nvim_feedkeys(":AsyncRun " .. " -errorformat=" .. errFmt .. " " .. compiler .. " " .. default_args, "n", true)
+            else
+                vim.api.nvim_feedkeys(":AsyncRun " .. compiler .. " " .. default_args, "n", true)
+            end
         end
 
         vim.api.nvim_feedkeys(string.rep(vim.api.nvim_replace_termcodes("<S-Left>", true, false, true), cursorBackPosition), "n", false)
@@ -47,30 +48,15 @@ local function createCmd(name, compiler, default_args, key, cursorBackPosition)
         ResetQFFiltering()
     end
 
-    local cmdFunc = function()
-        if not cacheFunc(name) then
-            vim.api.nvim_feedkeys(":" .. compiler .. " " .. default_args, "n", true)
-        end
-
-        vim.api.nvim_feedkeys(string.rep(vim.api.nvim_replace_termcodes("<S-Left>", true, false, true), cursorBackPosition), "n", false)
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<S-Right>", true, false, true), "n", false)
-        cmd = name --preparing to catch cmd to cache it
-        ResetQFFiltering()
-    end
-
     vim.keymap.set("n", defaultAsyncCmdPrefix .. key, acmdFunc, {
         desc = "Cached Async cmd for " .. name
-    })
-
-    vim.keymap.set("n", defaultCmdPrefix .. key, cmdFunc, {
-        desc = "Cached cmd for " .. name
     })
 end
 
 
 local search_catalogs = {}
 search_catalogs[0] = vim.fn.getcwd()
-search_catalogs[1] = "~/.config/nvim"
+
 local ignore_catalogs = {}
 ignore_catalogs[0] = "build"
 ignore_catalogs[1] = ".git"
@@ -89,8 +75,7 @@ vim.o.grepformat = '%f:%l:%m'
 
 createCmd("make", "make", "--no-print-directory" .. " --silent" ..' -C '  .. vim.fn.getcwd() .. " all", "m", 0)
 createCmd("grep", "grep", "--exclude-dir={" .. concatenate_catalogs(ignore_catalogs, ',') .."}" .. " --ignore-case ".. "-rni" .. " {text} " .. concatenate_catalogs(search_catalogs, " "), "g", 3)
-
---createCmd("find", "grep", " | find_for_grep.sh " .. concatenate_catalogs(search_catalogs, " ") .. " -type f -name '{pattern}'", "f")
+createCmd("find", "find", "-O3" .. " ." .. ' -name' .. " {pattern}", "f", 0, "\\%f")
 
 vim.keymap.set("n", defaultAsyncCmdPrefix .. "a", "<cmd>AsyncStop<CR>", { desc = "Stop async command" })
 

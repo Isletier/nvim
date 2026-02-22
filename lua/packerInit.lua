@@ -2,73 +2,29 @@
 -- Only required if you have packer configured as `opt` vim.cmd [[packadd packer.nvim]]
 
 return require('packer').startup(function(use)
-    use { 'wbthomason/packer.nvim' }
+    use {
+        'wbthomason/packer.nvim'
+    }
 
-    use { 'nvim-tree/nvim-tree.lua',
+    use {
+        'nvim-tree/nvim-tree.lua',
         requires = {
             'nvim-tree/nvim-web-devicons',
         },
     }
 
     use {
-        'nvim-telescope/telescope.nvim', branch = '0.1.x',
-        requires = {{
-            'nvim-lua/plenary.nvim'
-        }}
+        'skywind3000/asyncrun.vim'
     }
 
+
+--  Colors plugins
     use {
         "rockyzhang24/arctic.nvim",
         branch = 'v2',
         requires = {
             "rktjmp/lush.nvim"
         }
-    }
-
-    use (
-        'nvim-treesitter/nvim-treesitter', {
-        run = ':TSUpdate'
-    })
-
-    use {
-        'williamboman/mason.nvim',
-        opts = {
-            ensure_installed = {
-                "clangd",
-                "cmake-language-server",
-                "gopls",
-                "lua-language-server",
-                "codelldb",
-                "delve"
-            }
-        }
-    }
-
-    use { 'VonHeikemen/lsp-zero.nvim',
-        branch = 'v3.x',
-        requires = {
-            {'williamboman/mason.nvim'},
-            {'williamboman/mason-lspconfig.nvim'},
-
-            {'neovim/nvim-lspconfig'},
-            {'hrsh7th/nvim-cmp'},
-            {'hrsh7th/cmp-nvim-lsp'},
-            {'L3MON4D3/LuaSnip'},
-            {'ray-x/lsp_signature.nvim'},
-        }
-    }
-
-    use {
-        "mfussenegger/nvim-dap",
-        requires = {
-            "williamboman/mason.nvim",
-        }
-    }
-
-
-    use {
-        "igorlfs/nvim-dap-view",
-        opts = {},
     }
 
     use {
@@ -79,9 +35,27 @@ return require('packer').startup(function(use)
         }
     }
 
+
+--  LSP/syntax plugins
+    use (
+        'nvim-treesitter/nvim-treesitter', {
+        run = ':TSUpdate'
+    })
+
+    use {
+        'neovim/nvim-lspconfig',
+        branch = 'master'
+    }
+
+    use {
+        'ray-x/lsp_signature.nvim',
+        branch = 'master'
+    }
+
+--  Git plugins
     use {
         'Lufflee-Vaflee/gitgraph.nvim',
-        branch = 'custom',
+        branch = 'main',
         requires = {
             'nvim-lua/plenary.nvim',
             'sindrets/diffview.nvim'
@@ -92,8 +66,11 @@ return require('packer').startup(function(use)
         'lewis6991/gitsigns.nvim'
     }
 
+-- DVAP
     use {
-        'skywind3000/asyncrun.vim'
+    'Isletier/nvim-DVAP-ui',
+        requires = {
+           'Isletier/nvim-DVAP'
+        },
     }
-
 end)
