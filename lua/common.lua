@@ -43,9 +43,21 @@ vim.opt.isfname:append("@-@")
 
 vim.opt.updatetime = 50
 
--- Enable system clipboard
-vim.opt.clipboard = "unnamedplus"
+-- Настройка встроенного провайдера OSC 52
+vim.g.clipboard = {
+  name = 'OSC 52',
+  copy = {
+    ['+'] = require('vim.ui.clipboard.osc52').copy('+'),
+    ['*'] = require('vim.ui.clipboard.osc52').copy('*'),
+  },
+  paste = {
+    ['+'] = require('vim.ui.clipboard.osc52').paste('+'),
+    ['*'] = require('vim.ui.clipboard.osc52').paste('*'),
+  },
+}
 
+-- Синхронизация с системным буфером (чтобы y сразу копировал в Kitty)
+vim.opt.clipboard = "unnamedplus"
 vim.opt.fillchars:append { eob = " " }
 vim.g.loaded_matchparen = true
 

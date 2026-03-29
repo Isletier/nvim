@@ -1,76 +1,19 @@
--- This file can be loaded by calling `lua require('plugins')` from your init.vim
--- Only required if you have packer configured as `opt` vim.cmd [[packadd packer.nvim]]
-
-return require('packer').startup(function(use)
-    use {
-        'wbthomason/packer.nvim'
-    }
-
-    use {
-        'nvim-tree/nvim-tree.lua',
-        requires = {
-            'nvim-tree/nvim-web-devicons',
-        },
-    }
-
-    use {
-        'skywind3000/asyncrun.vim'
-    }
 
 
---  Colors plugins
-    use {
-        "rockyzhang24/arctic.nvim",
-        branch = 'v2',
-        requires = {
-            "rktjmp/lush.nvim"
-        }
-    }
+vim.pack.add({
+    -- Install "plugin1" and use default branch (usually `main` or `master`)
+    'https://github.com/nvim-tree/nvim-web-devicons',
+    'https://github.com/nvim-tree/nvim-tree.lua',
+    'https://github.com/skywind3000/asyncrun.vim',
+    "https://github.com/rktjmp/lush.nvim",
+    { src = "https://github.com/rockyzhang24/arctic.nvim", version = 'v2' },
+    'https://github.com/nvim-lualine/lualine.nvim',
+    'https://github.com/nvim-treesitter/nvim-treesitter',
+    'https://github.com/neovim/nvim-lspconfig',
+    'https://github.com/ray-x/lsp_signature.nvim',
+    'https://github.com/lewis6991/gitsigns.nvim',
+    'https://github.com/sindrets/diffview.nvim',
+    'https://github.com/Isletier/nvim-DVAP',
+    'https://github.com/Isletier/nvim-DVAP-ui',
+})
 
-    use {
-        'nvim-lualine/lualine.nvim',
-        requires = {
-            'nvim-tee/nvim-web-devicons',
-            opt = true
-        }
-    }
-
-
---  LSP/syntax plugins
-    use (
-        'nvim-treesitter/nvim-treesitter', {
-        run = ':TSUpdate'
-    })
-
-    use {
-        'neovim/nvim-lspconfig',
-        branch = 'master'
-    }
-
-    use {
-        'ray-x/lsp_signature.nvim',
-        branch = 'master'
-    }
-
---  Git plugins
-    use {
-        'Lufflee-Vaflee/gitgraph.nvim',
-        branch = 'main',
-        requires = {
-            'nvim-lua/plenary.nvim',
-            'sindrets/diffview.nvim'
-        }
-    }
-
-    use {
-        'lewis6991/gitsigns.nvim'
-    }
-
--- DVAP
-    use {
-    'Isletier/nvim-DVAP-ui',
-        requires = {
-           'Isletier/nvim-DVAP'
-        },
-    }
-end)
