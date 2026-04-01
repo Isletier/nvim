@@ -14,7 +14,7 @@
       "src": "https://github.com/sindrets/diffview.nvim"
     },
     "gitsigns.nvim": {
-      "rev": "50c205548d8b037b7ff6378fca6d21146f0b6161",
+      "rev": "0f00d07c2c3106ba6abd594ac1c17f211141b7b5",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "lsp_signature.nvim": {
@@ -38,11 +38,11 @@
       "src": "https://github.com/Isletier/nvim-DVAP-ui"
     },
     "nvim-lspconfig": {
-      "rev": "16812abf0e8d8175155f26143a8504e8253e92b0",
+      "rev": "8e2084bf5e40c79c1f42210a6ef96a0a4793a763",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "b548cfef00a79f0b3e3af24f91ae6bd14f22af95",
+      "rev": "02ccbcd4af9a7fa159251f721d763c0d16f91703",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {

@@ -1,0 +1,9 @@
+[submodule "DVAP"]
+	path = DVAP
+	url = git@github.com:Isletier/DVAP.git
+[submodule "nvim-DVAP-ui"]
+	path = nvim-DVAP-ui
+	url = git@github.com:Isletier/nvim-DVAP-ui.git
+[submodule "nvim-DVAP"]
+	path = nvim-DVAP
+	url = git@github.com:Isletier/nvim-DVAP.git
