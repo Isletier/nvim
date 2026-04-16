@@ -7,7 +7,8 @@ LSP = {
     [1] = 'lua_ls',
     [2] = 'clangd',
     [3] = 'gopls',
-    [4] = 'pylsp'
+    [4] = 'pylsp',
+    [5] = 'zls'
 }
 
 for _, v in pairs(LSP) do
