@@ -30,19 +30,19 @@
       "src": "https://github.com/rktjmp/lush.nvim"
     },
     "nvim-DVAP": {
-      "rev": "ec0ea4dc61bd997eb2ce81dfca08b0e099df09ff",
+      "rev": "0034e783501510333dca59e94b1707a8d0acfef6",
       "src": "https://github.com/Isletier/nvim-DVAP"
     },
     "nvim-DVAP-ui": {
-      "rev": "9ee7a64360db04a405523582718019ca19de8fc5",
+      "rev": "90fdc98a31b0a62e35bcb4cd5226abe712f128b6",
       "src": "https://github.com/Isletier/nvim-DVAP-ui"
     },
     "nvim-lspconfig": {
-      "rev": "16812abf0e8d8175155f26143a8504e8253e92b0",
+      "rev": "4b7fbaa239c5db6b36f424a4521ca9f1a401be33",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "b548cfef00a79f0b3e3af24f91ae6bd14f22af95",
+      "rev": "d277467fc0d1d0e2bca88165a1de6b526f9f6fe8",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
