@@ -4,7 +4,7 @@ vim.pack.add({
     'https://github.com/nvim-tree/nvim-tree.lua',
     'https://github.com/skywind3000/asyncrun.vim',
     "https://github.com/rktjmp/lush.nvim",
-    { src = "https://github.com/rockyzhang24/arctic.nvim", version = 'v2' },
+    { src = "https://github.com/Isletier/arctic.nvim", version = 'v2' },
     'https://github.com/nvim-lualine/lualine.nvim',
     'https://github.com/nvim-treesitter/nvim-treesitter',
     'https://github.com/neovim/nvim-lspconfig',
