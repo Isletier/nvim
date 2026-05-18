@@ -9,6 +9,7 @@ require('nvim-treesitter').install {
     "asm",
     "python",
     "go",
+    "zig",
 
     "ninja",
     "make",
