@@ -48,7 +48,7 @@ function Open_qf_full()
     end
 
     vim.cmd(":copen")
-    local height = vim.opt.lines:get() - 10
+    local height = vim.opt.lines:get() - 30
     vim.cmd("resize " .. height)
 end
 

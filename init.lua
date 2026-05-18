@@ -10,8 +10,6 @@ require("TreeSitterInit")
 
 require("LSP")
 
-require("DVAP")
-
 require("gitTools")
 
 require("QF")

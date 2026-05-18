@@ -1,8 +1,8 @@
 {
   "plugins": {
     "arctic.nvim": {
-      "rev": "9052ab87b1d6e9b746ab8dde6576e2876ffda4c7",
-      "src": "https://github.com/rockyzhang24/arctic.nvim",
+      "rev": "bbdbc0afcb9fb0d05c88b42d9b758a439d2ed9bf",
+      "src": "https://github.com/Isletier/arctic.nvim",
       "version": "'v2'"
     },
     "asyncrun.vim": {
@@ -14,15 +14,15 @@
       "src": "https://github.com/sindrets/diffview.nvim"
     },
     "gitsigns.nvim": {
-      "rev": "50c205548d8b037b7ff6378fca6d21146f0b6161",
+      "rev": "dd3f588bacbeb041be6facf1742e42097f62165d",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "lsp_signature.nvim": {
-      "rev": "af7e4074d85d785cf6614352ba9ad3b28a1f8a56",
+      "rev": "f40bcf203812beaf26766ec0bc169a7f429fd730",
       "src": "https://github.com/ray-x/lsp_signature.nvim"
     },
     "lualine.nvim": {
-      "rev": "47f91c416daef12db467145e16bed5bbfe00add8",
+      "rev": "131a558e13f9f28b15cd235557150ccb23f89286",
       "src": "https://github.com/nvim-lualine/lualine.nvim"
     },
     "lush.nvim": {
@@ -46,11 +46,11 @@
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
-      "rev": "7caec274fd19c12b55902a5b795100d21531391f",
+      "rev": "4916d6592ede8c07973490d9322f187e07dfefac",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
-      "rev": "d7462543c9e366c0d196c7f67a945eaaf5d99414",
+      "rev": "7d8dad2c837fcdf2e65997e68657c1a21c568074",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     }
   }

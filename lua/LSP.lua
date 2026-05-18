@@ -7,7 +7,8 @@ LSP = {
     [1] = 'lua_ls',
     [2] = 'clangd',
     [3] = 'gopls',
-    [4] = 'pylsp'
+    [4] = 'pylsp',
+    [5] = 'zls'
 }
 
 for _, v in pairs(LSP) do
@@ -27,8 +28,18 @@ vim.keymap.set("n", "gO", vim.lsp.buf.document_symbol)
 -- LSP completion
 vim.opt.completeopt = {
     "menu",
-    "menuone"
+    "menuone",
+    "noinsert"
 }
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if client and client:supports_method("textDocument/completion") then
+            vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+        end
+    end,
+})
 
 local s_tab_completion = function()
     if vim.fn.pumvisible() == 1 then
@@ -46,8 +57,21 @@ local tab_completion = function()
     end
 end
 
+local cr_completion = function()
+    if vim.fn.pumvisible() == 1 then
+        if vim.fn.complete_info({ "selected" }).selected ~= -1 then
+            return "<C-y>"
+        else
+            return "<C-y><CR>"
+        end
+    else
+        return "<CR>"
+    end
+end
+
 vim.keymap.set("i", "<S-Tab>", s_tab_completion, { expr = true, noremap = true })
 vim.keymap.set("i", "<Tab>", tab_completion, { expr = true, noremap = true })
+vim.keymap.set("i", "<CR>", cr_completion, { expr = true, noremap = true })
 vim.keymap.set('x', '<leader>gf', vim.lsp.buf.format, { noremap = true, silent = true })
 vim.keymap.set('n', '<leader>gf', vim.lsp.buf.format, { noremap = true, silent = true })
 
