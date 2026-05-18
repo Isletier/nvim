@@ -16,8 +16,5 @@ require("QF")
 
 require("cmd")
 
-vim.opt.runtimepath:prepend(vim.fn.stdpath("config") .. "/nvim-DVAP")
-vim.opt.runtimepath:prepend(vim.fn.stdpath("config") .. "/nvim-DVAP-ui")
-
 require("DVAP")
 

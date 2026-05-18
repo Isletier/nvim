@@ -18,7 +18,7 @@
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
     "lsp_signature.nvim": {
-      "rev": "a65b38f260cc3470a05b4afb84c8d868617d476d",
+      "rev": "f40bcf203812beaf26766ec0bc169a7f429fd730",
       "src": "https://github.com/ray-x/lsp_signature.nvim"
     },
     "lualine.nvim": {
@@ -30,19 +30,19 @@
       "src": "https://github.com/rktjmp/lush.nvim"
     },
     "nvim-DVAP": {
-      "rev": "40704d5205d33ace937d017ccc45b9c128267ea3",
+      "rev": "2405dd52b3646ab12614fb005623d76e90cfe0d6",
       "src": "https://github.com/Isletier/nvim-DVAP"
     },
     "nvim-DVAP-ui": {
-      "rev": "90fdc98a31b0a62e35bcb4cd5226abe712f128b6",
+      "rev": "c3860292cea75af4259ef49e300918795f353ff3",
       "src": "https://github.com/Isletier/nvim-DVAP-ui"
     },
     "nvim-lspconfig": {
-      "rev": "31026a13eefb20681124706a79fc1df6bf11ab27",
+      "rev": "3de240997fc3208eb29df5e5c17ba4665961bd84",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-tree.lua": {
-      "rev": "f9bfc0059eca24546b69a7006110463da4808f8f",
+      "rev": "07f541fcaa4a5ae019598240362449ab7e9812b3",
       "src": "https://github.com/nvim-tree/nvim-tree.lua"
     },
     "nvim-treesitter": {
@@ -50,7 +50,7 @@
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
-      "rev": "4fc505ac7bd7692824a142e96e5f529c133862f8",
+      "rev": "7d8dad2c837fcdf2e65997e68657c1a21c568074",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     }
   }

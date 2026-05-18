@@ -11,5 +11,8 @@ vim.pack.add({
     'https://github.com/ray-x/lsp_signature.nvim',
     'https://github.com/lewis6991/gitsigns.nvim',
     'https://github.com/sindrets/diffview.nvim',
+
+    "https://github.com/Isletier/nvim-DVAP",
+    "https://github.com/Isletier/nvim-DVAP-ui"
 })
 
