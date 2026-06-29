@@ -8,6 +8,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 local qf_original_list = {}
 local qf_is_filtered = false
+local qf_opened_toggle = false
 
 function ResetQFFiltering()
     qf_is_filtered = false
@@ -42,22 +43,12 @@ local function toggle_qf_filter()
 end
 
 function Open_qf_full()
-    if #vim.fn.getqflist() == 0 then
-        print("No items in QF list")
-        return
-    end
-
     vim.cmd(":copen")
     local height = vim.opt.lines:get() - 30
     vim.cmd("resize " .. height)
 end
 
 function Open_qf_standart()
-    if #vim.fn.getqflist() == 0 then
-        print("No items in QF list")
-        return
-    end
-
     vim.cmd(":copen")
     vim.cmd("resize 10")
 end
@@ -83,51 +74,67 @@ function BuffersToQf()
 end
 
 local track_file = "/tmp/qf_stream.txt"
-local last_size = 0
-local is_watching = false -- Your toggle flag
+local active_streams = {}
 
-local function watch_step()
-    if not is_watching then return end
+local function clean_ansi(text)
+    return text:gsub("\x1b%[[0-9;]*[a-zA-Z]", "")
+end
 
-    local f = io.open(track_file, "r")
-    if not f then return end
+_G.start_external_stream = function(pipe_path, errorformat)
+    -- Clear the quickfix list for the fresh stream
+    vim.fn.setqflist({}, 'r', { title = "Broadcast Stream", items = {} })
+    Open_qf_standart()
 
-    local current_size = f:seek("end")
+    local pipe = vim.uv.new_pipe(false)
 
-    -- If file shrank or reset, clear the quickfix list and start over
-    if current_size < last_size then
-        vim.cmd("cclear")
-        last_size = 0
+    local efm = nil
+    if errorformat ~= nil and errorformat ~= "" then
+        efm = vim.base64.decode(errorformat)
     end
 
-    -- If new content was added, read only the new portion
-    if current_size > last_size then
-        f:seek("set", last_size)
-        local new_content = f:read("*a")
-        last_size = current_size
+    vim.uv.fs_open(pipe_path, "r", 438, function(err, fd)
+        if err then return end
 
-        -- Convert the new string block into a list of lines
-        local lines = vim.split(new_content, "\n")
+        active_streams[pipe_path] = pipe
+        pipe:open(fd)
 
-        -- 'a' means APPEND to the existing quickfix list instead of overwriting
-        vim.fn.setqflist({}, 'a', { lines = lines })
-    end
+        pipe:read_start(vim.schedule_wrap(function(read_err, data)
+            if data then
+                -- Split incoming stream chunk into clean lines
+                local lines = vim.split(data, "[\r\n]+")
+                local valid_lines = {}
 
-    f:close()
+                for _, line in ipairs(lines) do
+                    if line ~= "" then
+                        local cleaned = clean_ansi(line)
+                        table.insert(valid_lines, cleaned)
+                    end
+                end
+
+                if #valid_lines > 0 then
+                    --dless 'lines' tells Neovim to run these strings through its internal parser.
+                    -- If 'errorformat' is blank/nil, it automatically uses the global standard 'make' efm.
+                    vim.fn.setqflist({}, 'a', {
+                        lines = valid_lines,
+                        efm = efm
+                    })
+                    vim.cmd("redraw")
+                end
+            else
+                -- Cleanup at EOF
+                if active_streams[pipe_path] then
+                    active_streams[pipe_path]:close()
+                    active_streams[pipe_path] = nil
+                end
+            end
+        end))
+    end)
 end
 
 -- Toggle function you can bind to a key
-function Toggle_pinned_qf()
-    is_watching = not is_watching
-    if is_watching then
-        print("Quickfix watching enabled")
-        last_size = 0
-        _G.watch_timer = vim.loop.new_timer()
-        _G.watch_timer:start(0, 400, vim.schedule_wrap(watch_step))
-    else
-        print("Quickfix watching disabled")
-        if _G.watch_timer then _G.watch_timer:close() end
-    end
+function Open_pinned_qf()
+    vim.cmd("cfile " .. track_file)
+    Open_qf_standart()
 end
 
 
@@ -138,7 +145,7 @@ vim.keymap.set("n", "<leader>qg", Open_qf_full)
 vim.keymap.set("n", "<leader>qn", Open_qf_standart)
 vim.keymap.set("n", "<leader>qe", "<cmd>cclose<CR>")
 vim.keymap.set("n", "<leader>qf", toggle_qf_filter)
-vim.keymap.set('n', '<leader>qt', Toggle_pinned_qf, { desc = "Load streamed terminal output into Quickfix" })
+vim.keymap.set('n', '<leader>qt', Open_pinned_qf)
 
 vim.keymap.set("n", "<leader>ql", vim.diagnostic.setqflist, { desc = "LSP diagnostics to quickfix" })
 vim.keymap.set("n", "<leader>qb", BuffersToQf, { desc = "Buffers to quickfix" })
