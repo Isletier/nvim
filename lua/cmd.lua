@@ -53,6 +53,10 @@ local function createCmd(name, compiler, default_args, key, cursorBackPosition, 
     })
 end
 
+local function find_shortcut()
+    vim.api.nvim_feedkeys(":find ", "n", true)
+end
+
 
 local search_catalogs = {}
 search_catalogs[0] = vim.fn.getcwd()
@@ -75,7 +79,8 @@ vim.o.grepformat = '%f:%l:%m'
 
 createCmd("make", "make", "--no-print-directory" .. " --silent" ..' -C '  .. vim.fn.getcwd() .. " all", "m", 0)
 createCmd("grep", "grep", "--exclude-dir={" .. concatenate_catalogs(ignore_catalogs, ',') .."}" .. " --ignore-case ".. "-rni" .. " {text} " .. concatenate_catalogs(search_catalogs, " "), "g", 3)
-createCmd("find", "find", "-O3" .. " ." .. ' -name' .. " {pattern}", "f", 0, "\\%f")
+
 
 vim.keymap.set("n", defaultAsyncCmdPrefix .. "a", "<cmd>AsyncStop<CR>", { desc = "Stop async command" })
+vim.keymap.set("n", "<leader>cf", find_shortcut)
 
